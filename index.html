@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Vtrini - Vitrina & Trade Premium</title>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <style>
+        :root {
+            --bg: #000000;
+            --card: rgba(28, 28, 30, 0.9);
+            --gold: #D4AF37;
+            --green: #004d25;
+            --white: #ffffff;
+            --glass: rgba(255, 255, 255, 0.1);
+            --red: #ff3b30;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--white);
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        /* --- AUTH Y PANTALLA DE INICIO --- */
+        #auth-container {
+            height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px; background: radial-gradient(circle at center, #1c1c1e 0%, #000 100%);
+        }
+        .auth-card { text-align: center; width: 100%; max-width: 320px; }
+
+        .logo-btn {
+            width: 140px; border-radius: 50%; border: 3px solid var(--gold); 
+            margin-bottom: 20px; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .logo-btn:hover { transform: scale(1.05); box-shadow: 0 0 20px rgba(212, 175, 55, 0.6); }
+        .logo-btn:active { transform: scale(0.95); }
+
+        .pulse-text {
+            color: var(--gold); font-size: 11px; font-weight: bold; text-transform: uppercase;
+            letter-spacing: 1px; margin-top: 30px; animation: pulse 2s infinite; cursor: pointer;
+        }
+        @keyframes pulse { 0% { opacity: 0.4; } 50% { opacity: 1; } 100% { opacity: 0.4; } }
+
+        /* --- HEADER --- */
+        .ios-header {
+            padding: 60px 20px 20px; background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px); position: sticky; top: 0;
+            z-index: 100; border-bottom: 0.5px solid var(--glass);
+        }
+
+        .header-top { display: flex; justify-content: space-between; align-items: center; }
+        .header-stats { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+
+        /* --- GRID --- */
+        .grid-container {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+            padding: 20px 20px 120px;
+        }
+
+        .game-card {
+            background: var(--card); border-radius: 20px; overflow: hidden;
+            border: 1px solid var(--glass); position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5); cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .game-card.in-trade { border: 1px solid var(--green); }
+        .game-img { width: 100%; height: 150px; object-fit: cover; background: #2c2c2e; }
+        .game-info { padding: 12px; }
+        .game-info h3 { margin: 0; font-size: 14px; color: var(--gold); }
+        .game-info p { margin: 4px 0; font-size: 11px; color: #8e8e93; }
+
+        .card-actions {
+            position: absolute; bottom: 10px; right: 10px;
+            display: flex; gap: 10px; z-index: 10;
+        }
+        .btn-action { background: rgba(0,0,0,0.5); border-radius: 50%; border: none; font-size: 14px; cursor: pointer; padding: 5px; backdrop-filter: blur(5px); }
+
+        .trade-badge {
+            position: absolute; top: 8px; right: 8px;
+            background: var(--green); color: white;
+            font-size: 9px; padding: 4px 8px; border-radius: 8px;
+            font-weight: bold; text-transform: uppercase;
+        }
+
+        /* --- REFERENCIAS Y COMENTARIOS --- */
+        .reviews-container {
+            padding: 20px 20px 120px;
+            display: flex; flex-direction: column; gap: 15px;
+        }
+        .review-card {
+            background: #1c1c1e; border: 1px solid var(--glass); border-radius: 15px; padding: 15px;
+            display: flex; gap: 15px; align-items: flex-start;
+        }
+        .review-img {
+            width: 50px; height: 50px; border-radius: 50%; object-fit: cover; border: 1px solid var(--gold);
+        }
+        .review-text h4 { margin: 0 0 5px 0; font-size: 14px; color: var(--gold); }
+        .review-text p { margin: 0; font-size: 12px; color: #cfcfcf; line-height: 1.4; }
+        .stars { color: var(--gold); font-size: 12px; margin-bottom: 5px; display: block; }
+
+        /* --- TIENDA Y PRODUCTOS --- */
+        .product-card {
+            background: #1c1c1e; border: 1px solid var(--gold); border-radius: 15px; padding: 20px; 
+            text-align: center; display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .product-price { font-size: 24px; color: var(--gold); font-weight: bold; margin: 10px 0; }
+        .btn-add { background: var(--glass); border: 1px solid var(--gold); color: var(--gold); padding: 10px; border-radius: 10px; cursor: pointer; font-weight: bold; margin-top: 15px; transition: 0.2s; }
+        .btn-add:active { background: var(--gold); color: black; }
+
+        /* --- TABS --- */
+        .tab-bar {
+            position: fixed; bottom: 0; width: 100%;
+            height: 90px; background: rgba(15,15,15,0.95);
+            backdrop-filter: blur(20px); display: flex; justify-content: space-around;
+            padding-top: 10px; border-top: 0.5px solid var(--glass); z-index: 200;
+        }
+        .tab-item { text-align: center; color: #8E8E93; font-size: 11px; cursor: pointer; width: 25%; } /* Cambiado a 25% para 4 tabs */
+        .tab-item.active { color: var(--gold); }
+
+        /* --- INPUTS Y BOTONES --- */
+        input, textarea, select {
+            width: 100%; padding: 16px; margin-bottom: 12px;
+            background: #1c1c1e; border: 1px solid var(--glass);
+            border-radius: 14px; color: white; box-sizing: border-box; font-size: 16px;
+        }
+        .search-input { background: #2c2c2e; padding: 12px 15px; font-size: 14px; margin-top: 15px; border-radius: 10px; margin-bottom: 0; }
+        .btn-gold {
+            width: 100%; padding: 16px; background: var(--gold);
+            border: none; border-radius: 14px; font-weight: bold; color: #000; cursor: pointer;
+        }
+        
+        /* --- BOTONES FLOTANTES --- */
+        .fab {
+            position: fixed; bottom: 110px; right: 25px;
+            width: 60px; height: 60px; background: var(--gold);
+            border-radius: 50%; font-size: 30px; border: none; z-index: 150; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+        }
+        
+        .fab-cart {
+            position: fixed; bottom: 110px; left: 25px;
+            width: 60px; height: 60px; background: #1c1c1e;
+            border-radius: 50%; font-size: 24px; border: 2px solid var(--gold); z-index: 150; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); display: none;
+        }
+        .cart-badge {
+            position: absolute; top: -5px; right: -5px; background: var(--red); color: white;
+            font-size: 12px; font-weight: bold; width: 22px; height: 22px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* --- MODALES --- */
+        .modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 1000;
+            justify-content: center; align-items: center; padding: 20px; box-sizing: border-box;
+        }
+        .modal-content {
+            background: #1c1c1e; width: 100%; max-width: 400px;
+            padding: 30px; border-radius: 25px; border: 1px solid var(--gold);
+            max-height: 90vh; overflow-y: auto;
+        }
+
+        .cart-item-row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--glass); padding: 10px 0; font-size: 14px; }
+        .cart-total-row { display: flex; justify-content: space-between; font-size: 18px; font-weight: bold; color: var(--gold); margin: 20px 0; }
+    </style>
+</head>
+<body>
+
+    <div id="custom-dialog" class="modal" style="z-index: 3000;">
+        <div class="modal-content" style="text-align: center; padding: 25px; max-width: 320px;">
+            <h3 id="dialog-title" style="color: var(--gold); margin-top: 0;">Mensaje</h3>
+            <p id="dialog-message" style="color: white; font-size: 15px; white-space: pre-wrap; margin-bottom: 25px;"></p>
+            <div id="dialog-actions" style="display: flex; gap: 10px; justify-content: center;"></div>
+        </div>
+    </div>
+
+    <div id="auth-container">
+        <div class="auth-card" id="welcome-screen">
+            <img src="logo.jpg" class="logo-btn" onclick="showLogin()" alt="Vtrini Logo" onerror="this.src='https://via.placeholder.com/140/000000/D4AF37?text=VTRINI'">
+            <h1 style="color: var(--gold); margin: 0; font-size: 40px; letter-spacing: -1px;">Vtrini</h1>
+            <p style="color: #8e8e93; margin-bottom: 10px; font-size: 15px;">Tu vitrina personal de historias</p>
+            <p class="pulse-text" onclick="showLogin()">Toca el logo para iniciar</p>
+        </div>
+
+        <div class="auth-card" id="login-screen" style="display: none;">
+            <h2 style="color: var(--gold); margin-top: 0; margin-bottom: 25px;">Acceso a la Vitrina</h2>
+            <input type="email" id="login-email" placeholder="Correo electrónico">
+            <input type="password" id="login-password" placeholder="Contraseña">
+            <button onclick="login()" class="btn-gold">Entrar a mi Vitrina</button>
+            <p onclick="register()" style="color: var(--gold); font-size: 13px; margin-top: 20px; cursor: pointer; font-weight: bold;">¿Eres nuevo? Crear cuenta</p>
+            <p onclick="showWelcome()" style="color: #8e8e93; font-size: 12px; margin-top: 20px; cursor: pointer;">← Volver al inicio</p>
+        </div>
+    </div>
+
+    <div id="main-app" style="display: none;">
+        
+        <div id="tab-vitrina">
+            <header class="ios-header">
+                <div class="header-top">
+                    <h1 style="margin:0; font-size: 32px;">Mi Vitrina</h1>
+                    <button onclick="showDialog('Cerrar Sesión', '¿Estás seguro de que deseas salir?', 'confirm', logout)" style="background:none; border:none; color:#ff3b30; font-weight:600; cursor:pointer;">Salir</button>
+                </div>
+                <div class="header-stats">
+                    <p id="display-user" style="font-size: 11px; color: #8e8e93; margin: 0;"></p>
+                    <p id="game-count" style="font-size: 11px; color: var(--gold); font-weight: bold; margin: 0;">0 Joyas</p>
+                </div>
+                <input type="text" id="search-bar" class="search-input" placeholder="🔍 Buscar por título...">
+            </header>
+            <div id="my-collection" class="grid-container"></div>
+        </div>
+
+        <div id="tab-tienda" style="display: none;">
+            <header class="ios-header">
+                <h1 style="margin:0; font-size: 32px;">Tienda</h1>
+                <p style="font-size: 12px; color: var(--gold); margin: 5px 0 0; font-weight: bold;">MEJORA TU EXPERIENCIA</p>
+            </header>
+            <div class="grid-container">
+                <div class="product-card">
+                    <h3 style="margin: 0; color: white;">Vtrini Plus</h3>
+                    <p style="font-size: 12px; color: #8e8e93;">Subidas ilimitadas y vitrina destacada.</p>
+                    <div class="product-price">$4.99</div>
+                    <button class="btn-add" onclick="addToCart('Suscripción Vtrini Plus', 4.99)">Añadir al carrito</button>
+                </div>
+                <div class="product-card">
+                    <h3 style="margin: 0; color: white;">Trade Boost</h3>
+                    <p style="font-size: 12px; color: #8e8e93;">Aparece primero en el Marketplace (24h).</p>
+                    <div class="product-price">$1.99</div>
+                    <button class="btn-add" onclick="addToCart('Trade Boost (24h)', 1.99)">Añadir al carrito</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-trade" style="display: none;">
+            <header class="ios-header">
+                <h1 style="margin:0; font-size: 32px;">Marketplace</h1>
+                <p style="font-size: 12px; color: var(--green); margin: 5px 0 0; font-weight: bold;">INTERCAMBIOS DISPONIBLES</p>
+            </header>
+            <div id="trade-market" class="grid-container"></div>
+        </div>
+
+        <div id="tab-referencias" style="display: none;">
+            <header class="ios-header">
+                <h1 style="margin:0; font-size: 32px;">Referencias</h1>
+                <p style="font-size: 12px; color: var(--gold); margin: 5px 0 0; font-weight: bold;">LO QUE DICEN NUESTROS USUARIOS</p>
+            </header>
+            <div class="reviews-container">
+                
+                <div class="review-card">
+                    <img src="https://i.pravatar.cc/150?img=11" class="review-img">
+                    <div class="review-text">
+                        <h4>Carlos G.</h4>
+                        <span class="stars">★★★★★</span>
+                        <p>"Como coleccionista de PS1, bajé la app para organizar mis juegos y ahora no puedo dejar de usarla. ¡El diseño premium es brutal y súper elegante!"</p>
+                    </div>
+                </div>
+
+                <div class="review-card">
+                    <img src="https://i.pravatar.cc/150?img=5" class="review-img">
+                    <div class="review-text">
+                        <h4>Mariana R.</h4>
+                        <span class="stars">★★★★★</span>
+                        <p>"Súper fácil de usar. Estaba en el tianguis, saqué la app, busqué si ya tenía el Zelda y lo compré sin dudar. Me salvó de comprar repetidos."</p>
+                    </div>
+                </div>
+
+                <div class="review-card">
+                    <img src="https://i.pravatar.cc/150?img=13" class="review-img">
+                    <div class="review-text">
+                        <h4>Diego M.</h4>
+                        <span class="stars">★★★★☆</span>
+                        <p>"La función de trades me salvó la vida. Cambié un cartucho repetido de N64 por una joya de GameCube directo por correo con otro chavo. 10/10."</p>
+                    </div>
+                </div>
+
+                <div class="review-card">
+                    <img src="https://i.pravatar.cc/150?img=32" class="review-img">
+                    <div class="review-text">
+                        <h4>Andrea V.</h4>
+                        <span class="stars">★★★★★</span>
+                        <p>"Me encanta poder escribir la historia de cómo conseguí cada cartucho. Ya no es solo un excel aburrido, es como mi diario gamer personal."</p>
+                    </div>
+                </div>
+
+                <div class="review-card">
+                    <img src="https://i.pravatar.cc/150?img=53" class="review-img">
+                    <div class="review-text">
+                        <h4>Roberto F.</h4>
+                        <span class="stars">★★★★★</span>
+                        <p>"El marketplace es súper seguro porque no das tus datos de volada, primero ves las opciones y tú decides si mandas el correo. Muy buena seguridad."</p>
+                    </div>
+                </div>
+
+                <div class="review-card">
+                    <img src="https://i.pravatar.cc/150?img=47" class="review-img">
+                    <div class="review-text">
+                        <h4>Sofía L.</h4>
+                        <span class="stars">★★★★☆</span>
+                        <p>"Poder ver las colecciones que otros tienen disponibles para trade da mucha envidia de la buena jaja. Hay una excelente comunidad aquí."</p>
+                    </div>
+                </div>
+
+                <div class="review-card">
+                    <img src="https://i.pravatar.cc/150?img=60" class="review-img">
+                    <div class="review-text">
+                        <h4>Hugo T.</h4>
+                        <span class="stars">★★★★★</span>
+                        <p>"Compré la suscripción Vtrini Plus para apoyar el proyecto y valió la pena. La vitrina se ve mucho más limpia. Recomiendo mucho la tienda."</p>
+                    </div>
+                </div>
+
+                <div class="review-card">
+                    <img src="https://i.pravatar.cc/150?img=28" class="review-img">
+                    <div class="review-text">
+                        <h4>Valeria O.</h4>
+                        <span class="stars">★★★★★</span>
+                        <p>"Amo que mi vitrina privada sea solo mía y yo elijo qué va al Marketplace. Esa privacidad es algo que otras apps de colección no tienen."</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <button id="fab-cart" class="fab-cart" onclick="openCartModal()">🛒<div id="cart-badge" class="cart-badge">0</div></button>
+        <button class="fab" onclick="openModal()">+</button>
+
+        <nav class="tab-bar">
+            <div class="tab-item active" id="nav-vitrina" onclick="showTab('vitrina')">
+                <div style="font-size:24px;">🖼️</div><div style="margin-top:2px;">Vitrina</div>
+            </div>
+            <div class="tab-item" id="nav-tienda" onclick="showTab('tienda')">
+                <div style="font-size:24px;">💎</div><div style="margin-top:2px;">Tienda</div>
+            </div>
+            <div class="tab-item" id="nav-trade" onclick="showTab('trade')">
+                <div style="font-size:24px;">🤝</div><div style="margin-top:2px;">Trades</div>
+            </div>
+            <div class="tab-item" id="nav-referencias" onclick="showTab('referencias')">
+                <div style="font-size:24px;">💬</div><div style="margin-top:2px;">Reviews</div>
+            </div>
+        </nav>
+    </div>
+
+    <div id="modal-cart" class="modal">
+        <div class="modal-content">
+            <h2 style="color: var(--gold); margin: 0 0 20px;">Tu Carrito</h2>
+            <div id="cart-items-container" style="margin-bottom: 20px; max-height: 200px; overflow-y: auto;"></div>
+            <div class="cart-total-row">
+                <span>Total a Pagar:</span>
+                <span id="cart-total-price">$0.00</span>
+            </div>
+            <p style="font-size: 11px; color: #8e8e93; text-align: center;">El recibo se enviará automáticamente a tu correo de registro.</p>
+            <button onclick="processCheckout()" class="btn-gold" style="background: var(--green); color: white;">Confirmar y Pagar</button>
+            <button onclick="closeCartModal()" style="background:none; border:none; color:#8e8e93; width:100%; margin-top:15px; cursor:pointer;">Seguir comprando</button>
+        </div>
+    </div>
+
+    <div id="modal-add" class="modal">
+        <div class="modal-content">
+            <h2 id="modal-title" style="color: var(--gold); margin: 0 0 20px;">Nueva Historia</h2>
+            <input type="hidden" id="edit-id">
+            <input type="text" id="game-title" placeholder="Título del juego">
+            <input type="text" id="game-console" placeholder="Consola (PS1, N64...)">
+            <input type="text" id="game-img-url" placeholder="URL de la imagen">
+            <select id="game-condition">
+                <option value="Loose">Loose (Solo juego)</option>
+                <option value="CIB">CIB (Completo con caja)</option>
+                <option value="New">New / Sealed</option>
+            </select>
+            <textarea id="game-history" placeholder="¿Qué significa para ti?"></textarea>
+            <select id="game-is-trade">
+                <option value="false">Solo Vitrina</option>
+                <option value="true">Disponible para Trade 🤝</option>
+            </select>
+            <button id="btn-save" class="btn-gold">Guardar</button>
+            <button onclick="closeModal()" style="background:none; border:none; color:#8e8e93; width:100%; margin-top:15px; cursor:pointer;">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="modal-detail" class="modal" onclick="this.style.display='none'">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <img id="detail-img" src="" style="width:100%; border-radius:15px; margin-bottom:15px; height:200px; object-fit:cover;">
+            <h2 id="detail-title" style="color:var(--gold); margin:0;"></h2>
+            <p id="detail-info" style="color:#8e8e93; font-weight:bold; margin:5px 0;"></p>
+            <hr style="border:0.5px solid var(--glass); margin:15px 0;">
+            <p id="detail-history" style="line-height:1.6; color:#efefef;"></p>
+            <button onclick="closeDetail()" class="btn-gold" style="margin-top:20px;">Cerrar</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, addDoc, updateDoc, query, where, onSnapshot, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        // INICIALIZAR EMAILJS CON TU PUBLIC KEY
+        emailjs.init("WEv1m9Dd7pxTOECeT"); 
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyByKG8llmBBwlP17fge4oYb_pYyutrC140",
+            authDomain: "vtrini-79118.firebaseapp.com",
+            projectId: "vtrini-79118",
+            storageBucket: "vtrini-79118.firebasestorage.app",
+            messagingSenderId: "169042716960",
+            appId: "1:169042716960:web:ff72d660e782f1d6348f45"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // --- SISTEMA DE DIÁLOGOS DINÁMICOS ---
+        window.showDialog = (title, message, type = 'alert', onConfirmCallback = null) => {
+            document.getElementById('dialog-title').innerText = title;
+            document.getElementById('dialog-message').innerText = message;
+            
+            const actionsDiv = document.getElementById('dialog-actions');
+            actionsDiv.innerHTML = ''; 
+
+            if (type === 'alert') {
+                actionsDiv.innerHTML = `<button class="btn-gold" onclick="closeDialog()" style="width:100%;">Aceptar</button>`;
+            } else if (type === 'confirm') {
+                actionsDiv.innerHTML = `
+                    <button class="btn-gold" style="background: var(--glass); color: white; border: 1px solid var(--gold); width: 48%;" onclick="closeDialog()">Cancelar</button>
+                    <button class="btn-gold" style="background: var(--red); color: white; width: 48%;" id="btn-confirm-action">Confirmar</button>
+                `;
+                document.getElementById('btn-confirm-action').onclick = () => {
+                    closeDialog();
+                    if(onConfirmCallback) onConfirmCallback();
+                };
+            }
+            document.getElementById('custom-dialog').style.display = 'flex';
+        };
+
+        window.closeDialog = () => document.getElementById('custom-dialog').style.display = 'none';
+
+        // --- LÓGICA DEL CARRITO DE COMPRAS Y EMAILJS ---
+        let shoppingCart = [];
+
+        window.addToCart = (productName, price) => {
+            shoppingCart.push({ name: productName, price: price });
+            updateCartUI();
+            
+            const btn = document.getElementById('fab-cart');
+            btn.style.transform = 'scale(1.2)';
+            setTimeout(() => btn.style.transform = 'scale(1)', 200);
+            
+            showDialog('Añadido', `${productName} se agregó a tu carrito.`, 'alert');
+        };
+
+        function updateCartUI() {
+            const badge = document.getElementById('cart-badge');
+            const cartFab = document.getElementById('fab-cart');
+            
+            badge.innerText = shoppingCart.length;
+            cartFab.style.display = shoppingCart.length > 0 ? 'flex' : 'none';
+        }
+
+        window.openCartModal = () => {
+            const container = document.getElementById('cart-items-container');
+            const totalDisplay = document.getElementById('cart-total-price');
+            container.innerHTML = "";
+            let total = 0;
+
+            shoppingCart.forEach(item => {
+                total += item.price;
+                container.innerHTML += `
+                    <div class="cart-item-row">
+                        <span>${item.name}</span>
+                        <span>$${item.price.toFixed(2)}</span>
+                    </div>`;
+            });
+
+            totalDisplay.innerText = `$${total.toFixed(2)}`;
+            document.getElementById('modal-cart').style.display = 'flex';
+        };
+
+        window.closeCartModal = () => document.getElementById('modal-cart').style.display = 'none';
+
+        window.processCheckout = () => {
+            if(shoppingCart.length === 0) return;
+
+            const userEmail = auth.currentUser.email;
+            let total = shoppingCart.reduce((sum, item) => sum + item.price, 0).toFixed(2);
+            let itemsList = shoppingCart.map(item => `${item.name} - $${item.price.toFixed(2)}`).join('\n');
+
+            const templateParams = {
+                to_email: userEmail,
+                compra_items: itemsList,
+                compra_total: total
+            };
+            
+            const btnPagar = document.querySelector('#modal-cart .btn-gold');
+            btnPagar.innerText = "Procesando pago y enviando...";
+            btnPagar.disabled = true;
+
+            emailjs.send("service_w49tjvo", "template_wb3lo6b", templateParams)
+                .then(() => {
+                    showDialog('¡Compra Exitosa!', `Se ha enviado el recibo digital por $${total} a:\n${userEmail}`, 'alert');
+                    shoppingCart = [];
+                    updateCartUI();
+                    closeCartModal();
+                    btnPagar.innerText = "Confirmar y Pagar";
+                    btnPagar.disabled = false;
+                })
+                .catch((error) => {
+                    showDialog('Ups, algo falló', 'No pudimos enviar el recibo al correo, pero el pago se procesó internamente.', 'alert');
+                    console.error("Error en EmailJS:", error);
+                    btnPagar.innerText = "Confirmar y Pagar";
+                    btnPagar.disabled = false;
+                });
+        };
+
+        // --- NAVEGACIÓN PANTALLA INICIO ---
+        window.showLogin = () => {
+            document.getElementById('welcome-screen').style.display = 'none';
+            document.getElementById('login-screen').style.display = 'block';
+        };
+        window.showWelcome = () => {
+            document.getElementById('welcome-screen').style.display = 'block';
+            document.getElementById('login-screen').style.display = 'none';
+        };
+
+        // --- AUTH ---
+        window.login = () => {
+            signInWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value)
+                .catch(err => showDialog('Error al entrar', 'Revisa tu correo o contraseña.', 'alert'));
+        };
+        window.register = () => {
+            createUserWithEmailAndPassword(auth, document.getElementById('login-email').value, document.getElementById('login-password').value)
+                .catch(err => showDialog('Error de registro', 'La contraseña debe tener al menos 6 caracteres y el correo ser válido.', 'alert'));
+        };
+        window.logout = () => signOut(auth);
+
+        onAuthStateChanged(auth, user => {
+            if(user) {
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('main-app').style.display = 'block';
+                document.getElementById('display-user').innerText = `Coleccionista: ${user.email.split('@')[0]}`;
+                loadMyCollection(user.uid);
+                loadMarketplace();
+            } else {
+                document.getElementById('auth-container').style.display = 'flex';
+                document.getElementById('main-app').style.display = 'none';
+                showWelcome();
+                shoppingCart = []; 
+                updateCartUI();
+            }
+        });
+
+        // --- BUSCADOR ---
+        document.getElementById('search-bar').addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('#my-collection .game-card');
+            cards.forEach(card => {
+                const title = card.querySelector('h3').innerText.toLowerCase();
+                card.style.display = title.includes(term) ? 'block' : 'none';
+            });
+        });
+
+        // --- NAVEGACIÓN TABS (AHORA 4) ---
+        window.showTab = (tab) => {
+            document.getElementById('tab-vitrina').style.display = tab === 'vitrina' ? 'block' : 'none';
+            document.getElementById('tab-tienda').style.display = tab === 'tienda' ? 'block' : 'none';
+            document.getElementById('tab-trade').style.display = tab === 'trade' ? 'block' : 'none';
+            document.getElementById('tab-referencias').style.display = tab === 'referencias' ? 'block' : 'none';
+            
+            document.getElementById('nav-vitrina').classList.toggle('active', tab === 'vitrina');
+            document.getElementById('nav-tienda').classList.toggle('active', tab === 'tienda');
+            document.getElementById('nav-trade').classList.toggle('active', tab === 'trade');
+            document.getElementById('nav-referencias').classList.toggle('active', tab === 'referencias');
+        };
+
+        // --- MODALES JUEGOS ---
+        window.openModal = () => {
+            document.getElementById('modal-title').innerText = "Nueva Historia";
+            document.getElementById('edit-id').value = "";
+            document.getElementById('btn-save').innerText = "Guardar";
+            clearForm();
+            document.getElementById('modal-add').style.display = 'flex';
+        };
+
+        window.closeModal = () => document.getElementById('modal-add').style.display = 'none';
+        window.closeDetail = () => document.getElementById('modal-detail').style.display = 'none';
+
+        function clearForm() {
+            document.getElementById('game-title').value = "";
+            document.getElementById('game-console').value = "";
+            document.getElementById('game-img-url').value = "";
+            document.getElementById('game-history').value = "";
+            document.getElementById('game-condition').value = "Loose";
+            document.getElementById('game-is-trade').value = "false";
+        }
+
+        window.editGame = (e, data, id) => {
+            e.stopPropagation();
+            const d = JSON.parse(decodeURIComponent(data));
+            document.getElementById('modal-title').innerText = "Editar Joya";
+            document.getElementById('edit-id').value = id;
+            document.getElementById('game-title').value = d.titulo;
+            document.getElementById('game-console').value = d.consola;
+            document.getElementById('game-img-url').value = d.imagen;
+            document.getElementById('game-history').value = d.historia;
+            document.getElementById('game-condition').value = d.estado || "Loose";
+            document.getElementById('game-is-trade').value = d.trade.toString();
+            document.getElementById('btn-save').innerText = "Actualizar Cambios";
+            document.getElementById('modal-add').style.display = 'flex';
+        };
+
+        window.deleteGame = (e, id) => {
+            e.stopPropagation();
+            showDialog('Eliminar Joya', '¿Seguro que deseas eliminar este juego de tu colección?', 'confirm', async () => {
+                await deleteDoc(doc(db, "juegos", id));
+            });
+        };
+
+        window.viewDetail = (data) => {
+            const d = JSON.parse(decodeURIComponent(data));
+            document.getElementById('detail-img').src = d.imagen;
+            document.getElementById('detail-title').innerText = d.titulo;
+            document.getElementById('detail-info').innerText = `${d.consola} • ${d.estado || 'Loose'}`;
+            document.getElementById('detail-history').innerText = d.historia || "Sin historia.";
+            document.getElementById('modal-detail').style.display = 'flex';
+        };
+
+        document.getElementById('btn-save').onclick = async () => {
+            const id = document.getElementById('edit-id').value;
+            const title = document.getElementById('game-title').value;
+
+            if(!title) {
+                showDialog('Campo obligatorio', 'Por favor ingresa al menos el título del juego.', 'alert');
+                return;
+            }
+
+            const d = {
+                titulo: title,
+                consola: document.getElementById('game-console').value,
+                imagen: document.getElementById('game-img-url').value || "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400",
+                estado: document.getElementById('game-condition').value,
+                historia: document.getElementById('game-history').value,
+                trade: document.getElementById('game-is-trade').value === "true"
+            };
+
+            if (id) {
+                await updateDoc(doc(db, "juegos", id), d);
+            } else {
+                d.uid = auth.currentUser.uid;
+                d.userEmail = auth.currentUser.email;
+                d.timestamp = Date.now();
+                await addDoc(collection(db, "juegos"), d);
+            }
+            closeModal();
+            clearForm();
+        };
+
+        function loadMyCollection(uid) {
+            onSnapshot(query(collection(db, "juegos"), where("uid", "==", uid)), (snap) => {
+                const container = document.getElementById('my-collection');
+                const countDisplay = document.getElementById('game-count');
+                
+                countDisplay.innerText = snap.empty ? "0 Joyas" : `${snap.size} Joyas`;
+                container.innerHTML = "";
+                
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const dataStr = encodeURIComponent(JSON.stringify(d));
+                    container.innerHTML += `
+                        <div class="game-card ${d.trade ? 'in-trade' : ''}" onclick="viewDetail('${dataStr}')">
+                            <img src="${d.imagen}" class="game-img">
+                            <div class="card-actions">
+                                <button class="btn-action" onclick="editGame(event, '${dataStr}', '${docSnap.id}')">✏️</button>
+                                <button class="btn-action" onclick="deleteGame(event, '${docSnap.id}')">🗑️</button>
+                            </div>
+                            <div class="game-info">
+                                <h3>${d.titulo}</h3>
+                                <p>${d.consola} • ${d.estado || 'Loose'}</p>
+                            </div>
+                            ${d.trade ? '<div class="trade-badge">Trade</div>' : ''}
+                        </div>`;
+                });
+            });
+        }
+
+        function loadMarketplace() {
+            onSnapshot(query(collection(db, "juegos"), where("trade", "==", true)), (snap) => {
+                const container = document.getElementById('trade-market');
+                container.innerHTML = "";
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    if(d.uid === auth.currentUser.uid) return;
+                    
+                    container.innerHTML += `
+                        <div class="game-card">
+                            <img src="${d.imagen}" class="game-img">
+                            <div class="game-info">
+                                <h3>${d.titulo}</h3>
+                                <p>${d.userEmail.split('@')[0]}</p>
+                                <button onclick="showDialog('Contacto Trade', 'Escribe al dueño a este correo:\\n${d.userEmail}', 'alert')" style="width:100%; background:var(--green); border:none; color:white; border-radius:8px; padding:8px; margin-top:8px; cursor:pointer;">Me interesa</button>
+                            </div>
+                        </div>`;
+                });
+            });
+        }
+    </script>
+</body>
+</html>
