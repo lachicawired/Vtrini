@@ -42,10 +42,8 @@ Aplicación web mobile-first para coleccionistas de videojuegos. Gestiona tu inv
 
 ```
 vtrini/
-├── index.html
-├── css/
-├── js/
-└── assets/
+└── index.html
+
 ```
 
 ---
