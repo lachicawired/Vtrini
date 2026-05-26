@@ -54,7 +54,7 @@ vtrini/
    ```bash
    git clone https://github.com/lachicawired/vtrini.git
    ```
-2. Configura tu proyecto Firebase en `js/firebase-config.js`
+2. Configura tu proyecto Firebase en el HTML
 3. Abre `index.html` en tu navegador o despliega en Firebase Hosting
 
 ---
